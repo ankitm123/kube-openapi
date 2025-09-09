@@ -1,0 +1,3 @@
+API rule violation: names_match,k8s.io/kube-openapi/test/integration/testdata/namedmodels,AtomicStruct,Field
+API rule violation: names_match,k8s.io/kube-openapi/test/integration/testdata/namedmodels,Struct,Field
+API rule violation: names_match,k8s.io/kube-openapi/test/integration/testdata/namedmodels,Struct,OtherField
