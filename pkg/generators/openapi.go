@@ -127,19 +127,19 @@ const (
 type openAPIGen struct {
 	generator.GoGenerator
 	// TargetPackage is the package that will get GetOpenAPIDefinitions function returns all open API definitions.
-	targetPackage        string
-	imports              namer.ImportTracker
-	useOpenAPIModelNames bool
+	targetPackage          string
+	imports                namer.ImportTracker
+	useGeneratedModelNames bool
 }
 
-func newOpenAPIGen(outputFilename string, targetPackage string, useOpenAPIModelNames bool) generator.Generator {
+func newOpenAPIGen(outputFilename string, targetPackage string, useGeneratedModelNames bool) generator.Generator {
 	return &openAPIGen{
 		GoGenerator: generator.GoGenerator{
 			OutputFilename: outputFilename,
 		},
-		imports:              generator.NewImportTrackerForPackage(targetPackage),
-		targetPackage:        targetPackage,
-		useOpenAPIModelNames: useOpenAPIModelNames,
+		imports:                generator.NewImportTrackerForPackage(targetPackage),
+		targetPackage:          targetPackage,
+		useGeneratedModelNames: useGeneratedModelNames,
 	}
 }
 
@@ -181,7 +181,7 @@ func (g *openAPIGen) Init(c *generator.Context, w io.Writer) error {
 	sw.Do("return map[string]$.OpenAPIDefinition|raw${\n", argsFromType(nil))
 
 	for _, t := range c.Order {
-		err := newOpenAPITypeWriter(sw, c, g.useOpenAPIModelNames).generateCall(t)
+		err := newOpenAPITypeWriter(sw, c, g.useGeneratedModelNames).generateCall(t)
 		if err != nil {
 			return err
 		}
@@ -196,7 +196,7 @@ func (g *openAPIGen) Init(c *generator.Context, w io.Writer) error {
 func (g *openAPIGen) GenerateType(c *generator.Context, t *types.Type, w io.Writer) error {
 	klog.V(5).Infof("generating for type %v", t)
 	sw := generator.NewSnippetWriter(w, c, "$", "$")
-	err := newOpenAPITypeWriter(sw, c, g.useOpenAPIModelNames).generate(t)
+	err := newOpenAPITypeWriter(sw, c, g.useGeneratedModelNames).generate(t)
 	if err != nil {
 		return err
 	}
@@ -235,16 +235,16 @@ type openAPITypeWriter struct {
 	refTypes               map[string]*types.Type
 	enumContext            *enumContext
 	GetDefinitionInterface *types.Type
-	useOpenAPIModelNames   bool
+	useGeneratedModelNames bool
 }
 
-func newOpenAPITypeWriter(sw *generator.SnippetWriter, c *generator.Context, useOpenAPIModelNames bool) openAPITypeWriter {
+func newOpenAPITypeWriter(sw *generator.SnippetWriter, c *generator.Context, useGeneratedModelNames bool) openAPITypeWriter {
 	return openAPITypeWriter{
-		SnippetWriter:        sw,
-		context:              c,
-		refTypes:             map[string]*types.Type{},
-		enumContext:          newEnumContext(c),
-		useOpenAPIModelNames: useOpenAPIModelNames,
+		SnippetWriter:          sw,
+		context:                c,
+		refTypes:               map[string]*types.Type{},
+		enumContext:            newEnumContext(c),
+		useGeneratedModelNames: useGeneratedModelNames,
 	}
 }
 
@@ -349,7 +349,7 @@ func (g openAPITypeWriter) generateCall(t *types.Type) error {
 
 		args := argsFromType(t)
 
-		if g.useOpenAPIModelNames {
+		if g.useGeneratedModelNames {
 			g.Do("$.|raw${}.OpenAPIModelName(): ", t)
 		} else {
 			// Legacy case: use the "canonical type name"
@@ -671,6 +671,9 @@ func (g openAPITypeWriter) generate(t *types.Type) error {
 		deps := []string{}
 		for _, k := range keys {
 			v := g.refTypes[k]
+			if t.Kind != types.Struct {
+				continue
+			}
 			if t, _ := openapi.OpenAPITypeFormat(v.String()); t != "" {
 				// This is a known type, we do not need a reference to it
 				// Will eliminate special case of time.Time
@@ -682,7 +685,7 @@ func (g openAPITypeWriter) generate(t *types.Type) error {
 			g.Do("Dependencies: []string{\n", args)
 			for _, k := range deps {
 				t := g.refTypes[k]
-				if g.useOpenAPIModelNames {
+				if g.useGeneratedModelNames {
 					g.Do("$.|raw${}.OpenAPIModelName(),", t)
 				} else {
 					g.Do("\"$.$\",", k)
@@ -1030,8 +1033,10 @@ func (g openAPITypeWriter) generateProperty(m *types.Member, parent *types.Type)
 		if err := g.generateSliceProperty(t); err != nil {
 			return fmt.Errorf("failed to generate slice property in %v: %v: %v", parent, m.Name, err)
 		}
-	case types.Struct, types.Interface:
+	case types.Struct:
 		g.generateReferenceProperty(t)
+	case types.Interface:
+		// Don't generate references to interfaces since we don't declare them
 	default:
 		return fmt.Errorf("cannot generate spec for type %v", t)
 	}
@@ -1046,7 +1051,7 @@ func (g openAPITypeWriter) generateSimpleProperty(typeString, format string) {
 
 func (g openAPITypeWriter) generateReferenceProperty(t *types.Type) {
 	g.refTypes[t.Name.String()] = t
-	if g.useOpenAPIModelNames {
+	if g.useGeneratedModelNames {
 		g.Do("Ref: ref($.|raw${}.OpenAPIModelName()),\n", t)
 	} else {
 		g.Do("Ref: ref(\"$.$\"),\n", t.Name.String())
