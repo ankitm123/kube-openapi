@@ -25,6 +25,15 @@ $ go run ../../cmd/openapi-gen/openapi-gen.go \
   --go-header-file ../../boilerplate/boilerplate.go.txt \
   --report-filename ./testdata/golden.v2.report \
   ./testdata/custom ./testdata/enumtype ./testdata/listtype ./testdata/maptype ./testdata/structtype ./testdata/dummytype ./testdata/uniontype ./testdata/defaults ./testdata/valuevalidation
+
+$ go run ../../cmd/openapi-gen/openapi-gen.go \
+  --output-dir pkg/generated/namedmodels \
+  --output-pkg generated \
+  --output-file openapi_generated.go \
+  --output-model-name-file zz_generated_model_name.go \
+  --go-header-file ../../boilerplate/boilerplate.go.txt \
+  --report-filename ./testdata/namedmodels/golden.v3.report \
+  ./testdata/namedmodels
 ```
 The generated file `pkg/generated/openapi_generated.go` should have been created.
 

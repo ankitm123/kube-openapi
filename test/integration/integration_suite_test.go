@@ -29,18 +29,19 @@ import (
 )
 
 const (
-	headerFilePath             = "../../boilerplate/boilerplate.go.txt"
-	testdataDir                = "./testdata"
-	testPkgRoot                = "k8s.io/kube-openapi/test/integration/testdata"
-	outputPkg                  = testPkgRoot + "/pkg/generated"
-	generatedCodeFileName      = "openapi_generated.go"
-	goldenCodeFilePath         = "pkg/generated/" + generatedCodeFileName
-	generatedSwaggerFileName   = "generated.v2.json"
-	goldenSwaggerFileName      = "golden.v2.json"
-	generatedReportFileName    = "generated.v2.report"
-	goldenReportFileName       = "golden.v2.report"
-	generatedOpenAPIv3FileName = "generated.v3.json"
-	goldenOpenAPIv3Filename    = "golden.v3.json"
+	headerFilePath                  = "../../boilerplate/boilerplate.go.txt"
+	testdataDir                     = "./testdata"
+	testPkgRoot                     = "k8s.io/kube-openapi/test/integration/testdata"
+	outputPkg                       = testPkgRoot + "/pkg/generated"
+	generatedCodeFileName           = "openapi_generated.go"
+	generatedSchemaNameCodeFileName = "zz_generated_model_name.go"
+	goldenCodeFilePath              = "pkg/generated/" + generatedCodeFileName
+	generatedSwaggerFileName        = "generated.v2.json"
+	goldenSwaggerFileName           = "golden.v2.json"
+	generatedReportFileName         = "generated.v2.report"
+	goldenReportFileName            = "golden.v2.report"
+	generatedOpenAPIv3FileName      = "generated.v3.json"
+	goldenOpenAPIv3Filename         = "golden.v3.json"
 
 	timeoutSeconds = 60.0
 )
@@ -104,7 +105,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, timeoutSeconds).Should(gexec.Exit(0))
 
-	// Run the OpenAPI code generator with --use-openapi-model-names
+	// Run the OpenAPI code generator with --output-model-name-file
 	Expect(terr).ShouldNot(HaveOccurred())
 
 	By("'namedmodels' running openapi-gen")
@@ -112,7 +113,7 @@ var _ = BeforeSuite(func() {
 		"--output-dir", tempDir + "/namedmodels",
 		"--output-pkg", outputPkg + "/namedmodels",
 		"--output-file", generatedCodeFileName,
-		"--use-openapi-model-names",
+		"--output-model-name-file", generatedSchemaNameCodeFileName,
 		"--go-header-file", headerFilePath,
 	}, path.Join(testPkgRoot, "namedmodels"))
 	command = exec.Command(openAPIGenPath, args...)
