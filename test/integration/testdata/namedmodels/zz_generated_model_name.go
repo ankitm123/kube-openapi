@@ -22,16 +22,6 @@ limitations under the License.
 package namedmodels
 
 // OpenAPIModelName returns the OpenAPI model name for this type.
-func (in AtomicStruct) OpenAPIModelName() string {
-	return "io.k8s.kube-openapi.test.integration.testdata.namedmodels.AtomicStruct"
-}
-
-// OpenAPIModelName returns the OpenAPI model name for this type.
-func (in ContainedStruct) OpenAPIModelName() string {
-	return "io.k8s.kube-openapi.test.integration.testdata.namedmodels.ContainedStruct"
-}
-
-// OpenAPIModelName returns the OpenAPI model name for this type.
 func (in Struct) OpenAPIModelName() string {
 	return "io.k8s.kube-openapi.test.integration.testdata.namedmodels.Struct"
 }

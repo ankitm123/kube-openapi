@@ -29,9 +29,9 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		testdatanamedmodels.AtomicStruct{}.OpenAPIModelName():    schema_test_integration_testdata_namedmodels_AtomicStruct(ref),
-		testdatanamedmodels.ContainedStruct{}.OpenAPIModelName(): schema_test_integration_testdata_namedmodels_ContainedStruct(ref),
-		testdatanamedmodels.Struct{}.OpenAPIModelName():          schema_test_integration_testdata_namedmodels_Struct(ref),
+		testdatanamedmodels.AtomicStruct{}.OpenAPIModelName():                       schema_test_integration_testdata_namedmodels_AtomicStruct(ref),
+		"k8s.io/kube-openapi/test/integration/testdata/namedmodels.ContainedStruct": schema_test_integration_testdata_namedmodels_ContainedStruct(ref),
+		testdatanamedmodels.Struct{}.OpenAPIModelName():                             schema_test_integration_testdata_namedmodels_Struct(ref),
 	}
 }
 
@@ -43,9 +43,10 @@ func schema_test_integration_testdata_namedmodels_AtomicStruct(ref common.Refere
 				Properties: map[string]spec.Schema{
 					"Field": {
 						SchemaProps: spec.SchemaProps{
-							Default: 0,
-							Type:    []string{"integer"},
-							Format:  "int32",
+							Description: "The generator should respect a manually declared OpenAPIModelName.",
+							Default:     0,
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
 				},
@@ -73,8 +74,9 @@ func schema_test_integration_testdata_namedmodels_Struct(ref common.ReferenceCal
 				Properties: map[string]spec.Schema{
 					"Field": {
 						SchemaProps: spec.SchemaProps{
-							Default: map[string]interface{}{},
-							Ref:     ref(testdatanamedmodels.ContainedStruct{}.OpenAPIModelName()),
+							Description: "The generator should see the +k8s:openapi-model-package and assume that a OpenAPIModelName is (or will be) generated.",
+							Default:     map[string]interface{}{},
+							Ref:         ref("k8s.io/kube-openapi/test/integration/testdata/namedmodels.ContainedStruct"),
 						},
 					},
 					"OtherField": {
@@ -89,6 +91,6 @@ func schema_test_integration_testdata_namedmodels_Struct(ref common.ReferenceCal
 			},
 		},
 		Dependencies: []string{
-			testdatanamedmodels.ContainedStruct{}.OpenAPIModelName()},
+			"k8s.io/kube-openapi/test/integration/testdata/namedmodels.ContainedStruct"},
 	}
 }
